@@ -101,7 +101,13 @@ class DirectMessageTile extends StatelessWidget {
                 itemBuilder: (context) => [
                   const PopupMenuItem(value: 'delete', child: Text('Delete')),
                 ],
-                icon: const Icon(Icons.more_vert, size: 20, color: Colors.grey),
+                child: const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: Center(
+                    child: Icon(Icons.more_vert, size: 18, color: Colors.grey),
+                  ),
+                ),
               ),
           ],
         ),

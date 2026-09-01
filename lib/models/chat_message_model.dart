@@ -19,7 +19,7 @@ class ChatMessageModel {
     required this.message,
     required this.time,
     this.isMe = false,
-    this.avatarColor = Colors.teal,
+    this.avatarColor = const Color.fromARGB(255, 28, 232, 212),
     this.timestamp,
   });
 
@@ -45,11 +45,11 @@ class ChatMessageModel {
 
     // Pick consistent avatar color
     final colors = [
-      const Color(0xFF4A154B),
-      const Color(0xFF00B4D8),
-      const Color(0xFF2E7D32),
-      const Color(0xFF5E35B1),
-      const Color(0xFFE65100),
+      const Color.fromARGB(255, 177, 54, 179),
+      const Color.fromARGB(255, 104, 184, 200),
+      const Color.fromARGB(255, 46, 125, 50),
+      const Color.fromARGB(255, 94, 53, 177),
+      const Color.fromARGB(255, 230, 81, 0),
     ];
     final colorIndex = senderName.hashCode.abs() % colors.length;
 

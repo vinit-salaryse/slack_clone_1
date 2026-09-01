@@ -15,7 +15,7 @@ class DirectMessageModel {
     required this.id,
     required this.name,
     this.email = '',
-    this.avatarColor = const Color(0xFF00B4D8),
+    this.avatarColor = const Color.fromARGB(255, 0, 180, 216),
     this.isOnline = true,
     this.isCurrentUser = false,
     this.customAvatarText,
@@ -29,14 +29,13 @@ class DirectMessageModel {
     final rawName = data['name'] ?? data['email']?.toString().split('@').first ?? 'User';
     final displayName = isMe ? '$rawName (you)' : rawName;
 
-    // Pick a consistent nice avatar color based on the name's hash
     final colors = [
-      const Color(0xFF00B4D8),
-      const Color(0xFF2E7D32),
-      const Color(0xFF5E35B1),
-      const Color(0xFFE65100),
-      const Color(0xFF00838F),
-      const Color(0xFF3949AB),
+      const Color.fromARGB(255, 1, 160, 192),
+      const Color.fromARGB(255, 46, 125, 50),
+      const Color.fromARGB(255, 94, 53, 177),
+      const Color.fromARGB(255, 230, 81, 0),
+      const Color.fromARGB(255, 0, 131, 143),
+      const Color.fromARGB(255, 57, 73, 171),
     ];
     final colorIndex = rawName.hashCode.abs() % colors.length;
 

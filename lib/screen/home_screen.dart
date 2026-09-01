@@ -1,6 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../cubits/channel_cubit.dart';
+import '../cubits/channel_state.dart';
 import '../models/channel_model.dart';
 import '../models/direct_message_model.dart';
 import '../services/firebase_chat_service.dart';
@@ -20,7 +23,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   // Navigation index
-  int _currentNavIndex = 0;
+  int currentNavIndex = 0;
 
   // Section collapse/expand states
   bool _isChannelsExpanded = true;
@@ -54,7 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   /// Show simple dialog to add a new channel in Firestore
-  void _showAddChannelDialog() {
+  void showAddChannelDialog() {
     final nameController = TextEditingController();
     bool isPrivate = false;
     bool isCreating = false;
@@ -80,7 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     autofocus: true,
                     decoration: const InputDecoration(
                       labelText: 'Channel Name',
-                      hintText: 'e.g. project-updates',
+                      hintText: 'project',
                       prefixIcon: Icon(Icons.tag),
                       border: OutlineInputBorder(),
                     ),
@@ -159,7 +162,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   /// Show User Profile & Logout Bottom Sheet
-  void _showProfileSheet() {
+  void showProfileSheet() {
     final user = FirebaseAuth.instance.currentUser;
     showModalBottomSheet(
       context: context,
@@ -190,7 +193,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 user?.email ?? '',
                 style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
               ),
-              const SizedBox(height: 24),
               ListTile(
                 leading: const Icon(Icons.logout, color: Colors.red),
                 title: const Text('Sign Out', style: TextStyle(color: Colors.red)),
@@ -206,19 +208,101 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  /// Show confirmation dialog for deleting a channel
+  void _showDeleteChannelConfirmationDialog(
+    BuildContext context,
+    ChannelModel channel,
+  ) {
+    showDialog(
+      context: context,
+      builder: (dialogCtx) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Text(
+            'Delete #${channel.name}?',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: Text(
+            'Are you sure you want to delete #${channel.name}? This will permanently remove the channel and all its messages. This action cannot be undone.',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey.shade800,
+              height: 1.4,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogCtx),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Colors.black87),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              onPressed: () {
+                Navigator.pop(dialogCtx);
+                context.read<ChannelCubit>().deleteChannel(
+                      channelId: channel.id,
+                      channelName: channel.name,
+                    );
+              },
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentUid = FirebaseChatService.currentUid;
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        top: false, // Let custom header extend to status bar
-        child: Column(
-          children: [
+    return BlocConsumer<ChannelCubit, ChannelState>(
+      listener: (context, state) {
+        if (state is ChannelDeleteSuccess) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Channel #${state.channelName} deleted successfully'),
+              backgroundColor: const Color(0xFF4A154B),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          context.read<ChannelCubit>().resetState();
+        } else if (state is ChannelDeleteError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to delete channel: ${state.error}'),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          context.read<ChannelCubit>().resetState();
+        }
+      },
+      builder: (context, channelState) {
+        final deletingChannelId =
+            channelState is ChannelDeleting ? channelState.channelId : null;
+
+        return Scaffold(
+          backgroundColor: Colors.white,
+          body: SafeArea(
+            top: false, // Let custom header extend to status bar
+            child: Column(
+              children: [
+
             // Top Slack Purple App Bar / Header
             Container(
-              color: const Color(0xFF481349), // Slack signature purple
+              color: const Color(0xFF481349), 
               padding: EdgeInsets.only(
                 top: MediaQuery.of(context).padding.top + 8,
                 bottom: 0.0,
@@ -275,7 +359,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(width: 12),
                   // Profile Avatar with Online Dot
                   GestureDetector(
-                    onTap: _showProfileSheet,
+                    onTap: showProfileSheet,
                     child: Stack(
                       clipBehavior: Clip.none,
                       children: [
@@ -363,14 +447,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 10),
                     const Divider(height: 1, thickness: 0.5, color: Color(0xFFEEEEEE)),
 
                     // 2. Channels Section (Connected with Firestore)
                     SectionHeader(
                       leading: const Icon(
                         Icons.tag,
-                        size: 20,
+                        size: 15,
                         color: Colors.black87,
                       ),
                       title: 'Channels',
@@ -402,13 +486,27 @@ class _HomeScreenState extends State<HomeScreen> {
                           final docs = snapshot.data?.docs ?? [];
                           final channels = docs
                               .map((doc) => ChannelModel.fromFirestore(doc))
+                              .where((channel) => channel.hasAccess(currentUid))
                               .toList();
 
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: channels.map((channel) {
+                              final isOwner = channel.createdBy.isNotEmpty &&
+                                  channel.createdBy == currentUid;
+                              final isDeleting =
+                                  deletingChannelId == channel.id;
+
                               return ChannelTile(
                                 channel: channel,
+                                isOwner: isOwner,
+                                isDeleting: isDeleting,
+                                onDelete: isOwner
+                                    ? () => _showDeleteChannelConfirmationDialog(
+                                          context,
+                                          channel,
+                                        )
+                                    : null,
                                 onTap: () => _openChat(
                                   targetId: channel.id,
                                   title: channel.name,
@@ -422,11 +520,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       // Add channel button
                       AddChannelTile(
-                        onTap: _showAddChannelDialog,
+                        onTap: showAddChannelDialog,
                       ),
                     ],
 
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 10),
                     const Divider(height: 1, thickness: 0.5, color: Color(0xFFEEEEEE)),
 
                     // 3. Direct Messages Section (Connected with Firestore Users)
@@ -489,9 +587,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           );
                         },
                       ),
-                    ],
-
-                    const SizedBox(height: 80), // Bottom padding for FAB and Nav
+                    ], // Bottom padding for FAB and Nav
                   ],
                 ),
               ),
@@ -507,7 +603,7 @@ class _HomeScreenState extends State<HomeScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
-        onPressed: _showAddChannelDialog,
+        onPressed: showAddChannelDialog,
         child: const Icon(Icons.add, size: 28),
       ),
 
@@ -520,9 +616,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         child: NavigationBar(
-          selectedIndex: _currentNavIndex,
+          selectedIndex: currentNavIndex,
           onDestinationSelected: (index) {
-            setState(() => _currentNavIndex = index);
+            setState(() => currentNavIndex = index);
           },
           backgroundColor: Colors.white,
           indicatorColor: const Color(0xFFEDE3ED), // Light purple highlight
@@ -556,6 +652,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
+    );
+      },
     );
   }
 }
