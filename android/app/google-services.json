@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "30598517651",
+    "project_id": "slack-clone-71167",
+    "storage_bucket": "slack-clone-71167.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:30598517651:android:d1acdd969c02fe08750e66",
+        "android_client_info": {
+          "package_name": "com.example.slack_clone_1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB9a7wNBSvRnz7qV7n-__3aGk3j9MBCoG4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
