@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="slack_clone_1"
+        android:label="Slack Clone"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

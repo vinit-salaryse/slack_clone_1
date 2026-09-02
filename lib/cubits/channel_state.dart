@@ -26,7 +26,6 @@ class ChannelDeleteSuccess extends ChannelState {
   });
 }
 
-/// State emitted when an error occurs during channel operations
 class ChannelDeleteError extends ChannelState {
   final String error;
   final String? channelId;

@@ -26,13 +26,12 @@ class _HomeScreenState extends State<HomeScreen> {
   int currentNavIndex = 0;
 
   // Section collapse/expand states
-  bool _isChannelsExpanded = true;
-  bool _isDMsExpanded = true;
+  bool isChannelsExpanded = true;
+  bool isDMsExpanded = true;
 
   @override
   void initState() {
     super.initState();
-    // Ensure current user profile exists in Firestore
     FirebaseChatService.ensureCurrentUserProfile();
   }
 
@@ -458,15 +457,15 @@ class _HomeScreenState extends State<HomeScreen> {
                         color: Colors.black87,
                       ),
                       title: 'Channels',
-                      isExpanded: _isChannelsExpanded,
+                      isExpanded: isChannelsExpanded,
                       onToggle: () {
                         setState(() {
-                          _isChannelsExpanded = !_isChannelsExpanded;
+                          isChannelsExpanded = !isChannelsExpanded;
                         });
                       },
                     ),
 
-                    if (_isChannelsExpanded) ...[
+                    if (isChannelsExpanded) ...[
                       StreamBuilder<QuerySnapshot>(
                         stream: FirebaseChatService.channelsStream(),
                         builder: (context, snapshot) {
@@ -535,15 +534,15 @@ class _HomeScreenState extends State<HomeScreen> {
                         color: Colors.black87,
                       ),
                       title: 'Direct messages',
-                      isExpanded: _isDMsExpanded,
+                      isExpanded: isDMsExpanded,
                       onToggle: () {
                         setState(() {
-                          _isDMsExpanded = !_isDMsExpanded;
+                          isDMsExpanded = !isDMsExpanded;
                         });
                       },
                     ),
 
-                    if (_isDMsExpanded) ...[
+                    if (isDMsExpanded) ...[
                       StreamBuilder<QuerySnapshot>(
                         stream: FirebaseChatService.usersStream(),
                         builder: (context, snapshot) {

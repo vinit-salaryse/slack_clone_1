@@ -502,8 +502,8 @@ class _MessageScreenState extends State<MessageScreen> {
             ),
             body: SafeArea(
               child: !hasAccess
-                  ? _buildAccessDeniedView()
-                  : _buildChatBody(FirebaseChatService.channelMessagesStream(widget.targetId)),
+                  ? buildAccessDeniedView()
+                  : buildChatBody(FirebaseChatService.channelMessagesStream(widget.targetId)),
             ),
           );
         },
@@ -554,13 +554,13 @@ class _MessageScreenState extends State<MessageScreen> {
         ],
       ),
       body: SafeArea(
-        child: _buildChatBody(directMessagesStream),
+        child: buildChatBody(directMessagesStream),
       ),
     );
   }
 
   /// Access Denied View for uninvited private channel users
-  Widget _buildAccessDeniedView() {
+  Widget buildAccessDeniedView() {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -620,12 +620,12 @@ class _MessageScreenState extends State<MessageScreen> {
   }
 
   /// Chat messages stream and input bar
-  Widget _buildChatBody(Stream<QuerySnapshot> messagesStream) {
+  Widget buildChatBody(Stream<QuerySnapshot> messagesStream) {
     final currentUid = FirebaseChatService.currentUid;
 
     return Column(
       children: [
-        // Real-time Firestore Messages Stream
+        // Real-time Firestore Messages Stream yaha sai data le raha hai
         Expanded(
           child: StreamBuilder<QuerySnapshot>(
             stream: messagesStream,
@@ -644,9 +644,9 @@ class _MessageScreenState extends State<MessageScreen> {
               }
 
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(
-                  child: CircularProgressIndicator(color: Color(0xFF4A154B)),
-                );
+               // return const Center(
+              //    child: CircularProgressIndicator(color: Color(0xFF4A154B)),
+              //  );
               }
 
               final docs = snapshot.data?.docs ?? [];
